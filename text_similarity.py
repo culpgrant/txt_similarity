@@ -3,6 +3,7 @@ This Python File
 """
 
 import re
+import math
 
 STOP_WORDS = ["i", "me", "my", "myself", "we", "our", "ours", "ourselves", "you",
               "your", "yours", "yourself", "yourselves", "he", "him", "his", "himself",
@@ -28,7 +29,7 @@ SAMPLE_TXT_ONE = "The easiest way to earn points with Fetch Rewards is to just s
 SAMPLE_TXT_TWO = "The easiest way to earn points with Fetch Rewards is to just shop for the items you already buy. If " \
                  "you have any eligible brands on your receipt, you will get points based on the total cost of the " \
                  "products. You do not need to cut out any coupons or scan individual UPCs. Just scan your receipt " \
-                 "after you check out and we will find the savings for you."
+                 "after you check out and we will find the savings for you. "
 
 SAMPLE_TXT_THREE = "We are always looking for opportunities for you to earn more points, which is why we also give " \
                    "you a selection of Special Offers. These Special Offers are opportunities to earn bonus points on " \
@@ -119,102 +120,54 @@ def create_vectors(txt_one_dict, txt_two_dict, union):
     return vector_one, vector_two
 
 
-print("Base:", SAMPLE_TXT_ONE)
-SAMPLE_TXT_ONE = strip_document(SAMPLE_TXT_ONE)
-SAMPLE_TXT_ONE = lower_case(SAMPLE_TXT_ONE)
-SAMPLE_TXT_ONE = replace_contraction(SAMPLE_TXT_ONE)
-SAMPLE_TXT_ONE = keep_alphanum(SAMPLE_TXT_ONE)
-SAMPLE_TXT_ONE = remove_stop_words(SAMPLE_TXT_ONE)
-print(SAMPLE_TXT_ONE)
-SAMPLE_TXT_ONE_COUNT = word_count(SAMPLE_TXT_ONE)
-
-print("Base:", SAMPLE_TXT_TWO)
-SAMPLE_TXT_TWO = strip_document(SAMPLE_TXT_TWO)
-SAMPLE_TXT_TWO = lower_case(SAMPLE_TXT_TWO)
-SAMPLE_TXT_TWO = replace_contraction(SAMPLE_TXT_TWO)
-SAMPLE_TXT_TWO = keep_alphanum(SAMPLE_TXT_TWO)
-SAMPLE_TXT_TWO = remove_stop_words(SAMPLE_TXT_TWO)
-print(SAMPLE_TXT_TWO)
-SAMPLE_TXT_TWO_COUNT = word_count(SAMPLE_TXT_TWO)
-
-SAMPLE_TXT_UNION = create_txt_union(SAMPLE_TXT_ONE, SAMPLE_TXT_TWO)
-
-print("Words txt 1:", len(SAMPLE_TXT_ONE))
-print("Words txt 2:", len(SAMPLE_TXT_TWO))
-print("Union:", SAMPLE_TXT_UNION)
-print("Length of Union", len(SAMPLE_TXT_UNION))
-
-SAMPLE_VEC_ONE, SAMPLE_VEC_TWO = create_vectors(SAMPLE_TXT_ONE_COUNT, SAMPLE_TXT_TWO_COUNT, SAMPLE_TXT_UNION)
-
-print("Vector One", SAMPLE_VEC_ONE)
-print("Vector Two", SAMPLE_VEC_TWO)
-
-'''
+def create_dot_product(vec_one, vec_two):
+    dot_product = sum(v1_element * v2_element for v1_element, v2_element in zip(vec_one, vec_two))
+    return dot_product
 
 
-import math
-import re
-from collections import Counter
-
-WORD = re.compile(r"\w+")
-
-
-def get_cosine(vec1, vec2):
-    intersection = set(vec1.keys()) & set(vec2.keys())
-    print(intersection)
-    numerator = sum([vec1[x] * vec2[x] for x in intersection])
-    print(numerator)
-
-    sum1 = sum([vec1[x] ** 2 for x in list(vec1.keys())])
-    sum2 = sum([vec2[x] ** 2 for x in list(vec2.keys())])
-    denominator = math.sqrt(sum1) * math.sqrt(sum2)
-
-    if not denominator:
-        return 0.0
-    else:
-        return float(numerator) / denominator
+def create_divisor(vec_one, vec_two):
+    vec_one_divisor = sum((item ** 2 for item in vec_one))
+    vec_one_divisor = math.sqrt(vec_one_divisor)
+    vec_two_divisor = sum((item ** 2 for item in vec_two))
+    vec_two_divisor = math.sqrt(vec_two_divisor)
+    return vec_one_divisor, vec_two_divisor
 
 
-def text_to_vector(text):
-    words = WORD.findall(text)
-    return Counter(words)
+def determine_txt_similarity(txt_one, txt_two):
+    """"""
+    # Txt One Preparation (Cleaning and then getting the dict of word count)
+    txt_one_clean = strip_document(txt_one)
+    txt_one_clean = lower_case(txt_one_clean)
+    txt_one_clean = replace_contraction(txt_one_clean)
+    txt_one_clean = keep_alphanum(txt_one_clean)
+    txt_one_clean = remove_stop_words(txt_one_clean)
+    txt_one_count = word_count(txt_one_clean)
 
+    # Txt Two Preparation (Cleaning and then getting the dict of word count)
+    txt_two_clean = strip_document(txt_two)
+    txt_two_clean = lower_case(txt_two_clean)
+    txt_two_clean = replace_contraction(txt_two_clean)
+    txt_two_clean = keep_alphanum(txt_two_clean)
+    txt_two_clean = remove_stop_words(txt_two_clean)
+    txt_two_count = word_count(txt_two_clean)
 
-text1 = "This is a foo bar sentence ."
-text2 = "This sentence is similar to a foo bar sentence ."
+    # Getting the Union of the two texts (words)
+    txt_union = create_txt_union(txt_one_clean, txt_two_clean)
 
-vector1 = text_to_vector(text1)
-vector2 = text_to_vector(text2)
-#print(vector1)
-#print(vector2)
+    # Creating the vectors for our calculation
+    vec_one, vec_two = create_vectors(txt_one_count, txt_two_count, txt_union)
 
-cosine = get_cosine(vector1, vector2)
+    # Getting the Dot Product
+    dot_product = create_dot_product(vec_one, vec_two)
 
-#print("Cosine:", cosine)
+    # Creating the two divisors
+    txt_one_divisor, txt_two_divisor = create_divisor(vec_one, vec_two)
 
+    # Calculating the result
+    result = dot_product/(txt_one_divisor * txt_two_divisor)
 
+    return result
 
+similarity_score = determine_txt_similarity(SAMPLE_TXT_ONE, SAMPLE_TXT_TWO)
 
-from collections import Counter
-
-def build_vector(iterable1, iterable2):
-    counter1 = Counter(iterable1)
-    counter2 = Counter(iterable2)
-    print(counter1)
-    print(counter1.keys())
-    print(counter2.keys())
-    all_items = set(counter1.keys()).union(set(counter2.keys()))
-    print(all_items)
-    vector1 = [counter1[k] for k in all_items]
-    vector2 = [counter2[k] for k in all_items]
-    return vector1, vector2
-
-l1 = "Julie loves me more than Linda loves me".split()
-l2 = "Jane likes me more than Julie loves me or".split()
-
-
-v1, v2 = build_vector(l1, l2)
-
-print(v1, v2)
-
-'''
+print(round(similarity_score, 2))
