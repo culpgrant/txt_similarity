@@ -4,8 +4,8 @@
 # The container is the actual process running the project
 FROM python:3.8
 
-ADD text_similarity.py .
-ADD flask_api_file.py .
+COPY ./App/flask_api_file.py /App/flask_api_file.py
+COPY ./App/text_similarity.py /App/text_similarity.py
 
 RUN pip install flask
 
