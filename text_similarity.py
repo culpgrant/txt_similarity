@@ -1,10 +1,13 @@
 """
-This Python File
+This Python File contains the function that takes in two strings and returns a metric that
+scores the texts similarities on a scale of 0 to 1. It uses the method of Cosine Similarity formula to
+determine the score.
 """
 
 import re
 import math
 
+# List of words that we want to remove (stop words) from the inputted sentences
 STOP_WORDS = ["i", "me", "my", "myself", "we", "our", "ours", "ourselves", "you",
               "your", "yours", "yourself", "yourselves", "he", "him", "his", "himself",
               "she", "her", "hers", "herself", "it", "its", "itself", "they", "them",
@@ -19,8 +22,10 @@ STOP_WORDS = ["i", "me", "my", "myself", "we", "our", "ours", "ourselves", "you"
               "more", "most", "other", "some", "such", "no", "nor", "not", "only",
               "own", "same", "so", "than", "too", "very", "can", "will"]
 
+# List of contractions we want to map to their full words
 CONTRACTION_MAPPING = {"you'll": "you will", "don't": "do not", "we'll": "we will"}
 
+# Texts from the Project Requirements
 SAMPLE_TXT_ONE = "The easiest way to earn points with Fetch Rewards is to just shop for the products you already " \
                  "love. If you have any participating brands on your receipt, you'll get points based on the cost of " \
                  "the products. You don't need to clip any coupons or scan individual barcodes. Just scan each " \
@@ -42,7 +47,8 @@ SAMPLE_TXT_THREE = "We are always looking for opportunities for you to earn more
 
 # Remove all leading and trailing whitespaces - when people copy and past white spaces can happen
 def strip_document(txt):
-    """Returns string after removing leading and trailing spaces
+    """
+    Returns string after removing leading and trailing spaces
     :param txt: String to clean
     :return: String
     """
@@ -52,15 +58,35 @@ def strip_document(txt):
 
 # Convert all the text to lowercase
 def lower_case(txt):
+    """
+    Returns string after making everything a lowercase
+    :param txt: string
+    :return: string
+    """
     txt = txt.lower()
     return txt
 
 
 # Replace all the Contractions in the Document
 def replace_contraction(txt):
+    """
+    Repalaces contractions with their full word - see dictionary at top file
+    :param txt: string
+    :return: string
+    """
     for contraction, full in CONTRACTION_MAPPING.items():
         txt = txt.replace(contraction, full)
     return txt
+
+# Remove all Stop words - they don't have significance for us
+def remove_stop_words(list_words):
+    """
+    Remove stop words from the string
+    :param list_words: string
+    :return: string
+    """
+    result = [word for word in list_words if word not in STOP_WORDS]
+    return result
 
 
 # Only Keep alphanumeric characters - we are going to use regular expressions to do this
@@ -75,14 +101,13 @@ def keep_alphanum(txt):
     return list_txt
 
 
-# Remove all Stop words - they don't have significance for us
-def remove_stop_words(list_words):
-    result = [word for word in list_words if word not in STOP_WORDS]
-    return result
-
-
 # Count duplicate words and create dictionary
 def word_count(list_words):
+    """
+    Takes in a list and creates a dictionary of the word and the associated word count
+    :param list_words: list
+    :return: dictionary
+    """
     dict_word_count = {}
     for word in list_words:
         if word in dict_word_count:
@@ -94,6 +119,12 @@ def word_count(list_words):
 
 # We need to get the Union of these two dictionaries
 def create_txt_union(txt_one, txt_two):
+    """
+    Creates a union of the dictionaries and returns a set of the words (unique)
+    :param txt_one: dictionary
+    :param txt_two: dictionary
+    :return: set
+    """
     txt_one_set = set(txt_one)
     txt_two_set = set(txt_two)
     txt_union = txt_one_set.union(txt_two_set)
@@ -102,6 +133,14 @@ def create_txt_union(txt_one, txt_two):
 
 # Creating the vectors for these two dictionaries
 def create_vectors(txt_one_dict, txt_two_dict, union):
+    """
+    Takes in two dictionaries and a set to create a vector.
+    For each word if it exists it puts the count there if it does not it puts 0.
+    :param txt_one_dict: dictionary
+    :param txt_two_dict: dictionary
+    :param union: set
+    :return: list
+    """
     # Creating vector for first txt
     vector_one = []
     for word in union:
@@ -121,11 +160,24 @@ def create_vectors(txt_one_dict, txt_two_dict, union):
 
 
 def create_dot_product(vec_one, vec_two):
+    """
+    Intakes two vectors and multiplies them together to get a product
+    Multiplies element 0 in list 1 with element 0 in list 2, element 1 in list 1 with element 1 in list 2
+    :param vec_one: list
+    :param vec_two: list
+    :return: int
+    """
     dot_product = sum(v1_element * v2_element for v1_element, v2_element in zip(vec_one, vec_two))
     return dot_product
 
 
 def create_divisor(vec_one, vec_two):
+    """
+    Intakes two vectors and the divisor for the function
+    :param vec_one: list
+    :param vec_two: list
+    :return: float
+    """
     vec_one_divisor = sum((item ** 2 for item in vec_one))
     vec_one_divisor = math.sqrt(vec_one_divisor)
     vec_two_divisor = sum((item ** 2 for item in vec_two))
@@ -134,7 +186,13 @@ def create_divisor(vec_one, vec_two):
 
 
 def determine_txt_similarity(txt_one, txt_two):
-    """"""
+    """
+    This function takes in two string and apply all the functions above to
+    result in a score from (0 to 1) of text similarity
+    :param txt_one: string
+    :param txt_two: string
+    :return: float
+    """
     # Txt One Preparation (Cleaning and then getting the dict of word count)
     txt_one_clean = strip_document(txt_one)
     txt_one_clean = lower_case(txt_one_clean)
@@ -168,6 +226,6 @@ def determine_txt_similarity(txt_one, txt_two):
 
     return result
 
-similarity_score = determine_txt_similarity(SAMPLE_TXT_ONE, SAMPLE_TXT_TWO)
 
-print(round(similarity_score, 2))
+#test_result = round(determine_txt_similarity("sample text", "sample text"),2)
+#print(test_result)
