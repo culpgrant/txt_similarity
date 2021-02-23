@@ -3,6 +3,7 @@
 This is a Python Program to calculate the text-similarity between two strings. It also contains a Web API to interact with it using Flask.
 
 The text similarity strategy method uses [Cosine Similarity](https://en.wikipedia.org/wiki/Cosine_similarity) to determine the score. The score is a range between 0 - 1 (the same text will return 1).
+The actual text similarity file is within the App directory and called "text_similarity.py"
 
 
 ## Installation
