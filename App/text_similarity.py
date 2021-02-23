@@ -227,5 +227,5 @@ def determine_txt_similarity(txt_one, txt_two):
     return result
 
 
-#test_result = round(determine_txt_similarity("sample text", "sample text"),2)
+#test_result = round(determine_txt_similarity(SAMPLE_TXT_ONE, SAMPLE_TXT_THREE),2)
 #print(test_result)
